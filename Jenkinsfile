@@ -1,0 +1,74 @@
+pipeline {
+
+    agent any
+
+    environment {
+        IMAGE_NAME = "hrishi-flask"
+        IMAGE_TAG  = "v1"
+        DOCKERHUB_USER = "hrishi0071"
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                echo "Fetching code from Jenkins workspace..."
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                echo "Installing Python dependencies..."
+                sh 'pip install -r app/requirements.txt || true'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo "Building Docker image..."
+                sh """
+                    docker build \
+                        -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} \
+                        ./app
+                """
+            }
+        }
+	
+	stage('Push Image to DockerHub') {
+            steps {
+                echo "Pushing image to DockerHub..."
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub_login',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh """
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}
+                    """
+                }
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                echo "Running container from built image..."
+		 sh """
+                    docker run -d --name flask_cicd \
+                        -p 5000:5000 \
+                        ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} \
+                        || true
+                """
+            }
+        }
+    }
+
+    post {
+
+        always {
+            echo "Cleaning up old containers..."
+            sh "docker rm -f flask_cicd || true"
+        }
+    }
+}
