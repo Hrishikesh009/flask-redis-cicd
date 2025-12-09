@@ -48,7 +48,7 @@ pipeline {
             steps {
                 echo "Running container from built image..."
 		 sh """
-					cd <workspace>
+					cd $<workspace>
 					
 		 			# Stop old containers
                     docker compose down || true
