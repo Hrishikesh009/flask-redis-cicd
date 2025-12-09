@@ -5,7 +5,7 @@ pipeline {
     environment {
         IMAGE_NAME = "hrishi-flask"
         IMAGE_TAG  = "v1"
-        DOCKERHUB_USER = "hrishi0071"
+        DOCKERHUB_USER = "hrishi001"
     }
 
     stages {
@@ -13,7 +13,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 echo "Fetching code from Jenkins workspace..."
-                checkout scm
+                git branch: 'main', url: 'https://github.com/Hrishikesh009/flask-redis-cicd.git'
             }
         }
 
@@ -28,9 +28,7 @@ pipeline {
             steps {
                 echo "Building Docker image..."
                 sh """
-                    docker build \
-                        -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} \
-                        ./app
+                    docker build -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ./app
                 """
             }
         }
@@ -55,10 +53,7 @@ pipeline {
             steps {
                 echo "Running container from built image..."
 		 sh """
-                    docker run -d --name flask_cicd \
-                        -p 5000:5000 \
-                        ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} \
-                        || true
+                    docker run -d --name flask_cicd -p 5000:5000 ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} || true
                 """
             }
         }
