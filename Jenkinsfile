@@ -48,17 +48,10 @@ pipeline {
             steps {
                 echo "Running container from built image..."
 		 sh """
+		 			docker rm -f flask_cicd || true
                     docker run -d --name flask_cicd -p 5000:5000 ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} || true
                 """
             }
-        }
-    }
-
-    post {
-
-        always {
-            echo "Cleaning up old containers..."
-            sh "docker rm -f flask_cicd || true"
         }
     }
 }
