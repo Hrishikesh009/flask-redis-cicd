@@ -48,12 +48,10 @@ pipeline {
             steps {
                 echo "Running container from built image..."
 		 sh """
-					cd $<WORKSPACE>
+					cd ${WORKSPACE}
 					
-		 			# Stop old containers
                     docker compose down || true
 
-                    # Rebuild and start everything
                     docker compose up -d --build
                 """
             }
