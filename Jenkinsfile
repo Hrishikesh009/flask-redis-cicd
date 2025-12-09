@@ -48,8 +48,13 @@ pipeline {
             steps {
                 echo "Running container from built image..."
 		 sh """
-		 			docker rm -f flask_cicd || true
-                    docker run -d --name flask_cicd -p 5000:5000 ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} || true
+					cd <workspace>
+					
+		 			# Stop old containers
+                    docker compose down || true
+
+                    # Rebuild and start everything
+                    docker compose up -d --build
                 """
             }
         }
